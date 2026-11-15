@@ -233,35 +233,90 @@ function update(){
   return `<div class="digitbox"><b>${d}</b><small>${pct.toFixed(1)}%</small><div class="bar"><span style="width:${pct}%"></span></div></div>`;
  }).join("");
 }
-function analyse(){
- const digit=Number($("digit").value);
- const contract=$("contract").value;
- const outcomes=[];
- for(let i=0;i<ticks.length-2;i++){
-  outcomes.push(ticks[i+2].digit===digit);
- }
- const matches=outcomes.filter(Boolean).length;
- const total=outcomes.length;
- if(!total)return;
- const matchRate=matches/total*100;
- const differRate=100-matchRate;
- const successRate=contract==="MATCH"?matchRate:differRate;
- const successes=contract==="MATCH"?matches:total-matches;
- const expected=contract==="MATCH"?10:90;
- const recommendation=successRate>expected+2?"ABOVE BASELINE":
-  successRate<expected-2?"BELOW BASELINE":"NEAR BASELINE";
 
- $("report").innerHTML=`
- <p><b>Market:</b> ${$("market").selectedOptions[0]?.textContent||selected}</p>
- <p><b>Selected digit:</b> ${digit} &nbsp; | &nbsp; <b>Contract:</b> ${contract}</p>
- <p><b>Historical ${contract} success rate:</b> ${successRate.toFixed(2)}%</p>
- <p><b>MATCH rate:</b> ${matchRate.toFixed(2)}% &nbsp; | &nbsp; <b>DIFFER rate:</b> ${differRate.toFixed(2)}%</p>
- <p><b>Successful historical outcomes:</b> ${successes} of ${total}</p>
- <p><b>Comparison with theoretical baseline:</b> ${recommendation} (${expected}% baseline)</p>
- <p><b>Statistical sample:</b> ${total} two-tick observations</p>
- <p><b>Assessment:</b> ${total<100?"Small sample — collect more ticks before interpreting the result.":total<300?"Moderate sample — results remain uncertain.":"Larger sample, but still not a guarantee of future performance."}</p>
- <p class="muted">This is a historical frequency test, not a reliable forecast. Consecutive tick outcomes may not be independent, and past frequencies do not establish the next result.</p>`;
+async function analyse() {
+  const runButton = $("run");
+  const report = $("report");
+
+  runButton.disabled = true;
+
+  report.innerHTML = `
+    <h3>ANALYSING LIVE MARKET</h3>
+    <h2>Please wait 12 seconds...</h2>
+    <p>Collecting fresh tick data.</p>
+  `;
+
+  const startingLength = ticks.length;
+
+  await new Promise(resolve => setTimeout(resolve, 12000));
+
+  const newTicks = ticks.slice(startingLength);
+
+  if (newTicks.length < 10) {
+    report.innerHTML = `
+      <h3>INSUFFICIENT DATA</h3>
+      <p>Only ${newTicks.length} new ticks collected.</p>
+      <p>Please reconnect and try again.</p>
+    `;
+
+    runButton.disabled = ticks.length < 20;
+    return;
+  }
+
+  const counts = Array(10).fill(0);
+
+  newTicks.forEach(tick => {
+    if (Number.isInteger(tick.digit) &&
+        tick.digit >= 0 && tick.digit <= 9) {
+      counts[tick.digit]++;
+    }
+  });
+
+  const candidate = counts
+    .map((count, digit) => ({ digit, count }))
+    .sort((a, b) =>
+      a.count - b.count || a.digit - b.digit
+    )[0].digit;
+
+  let remaining = 15;
+
+  report.innerHTML = `
+    <h3>DIGIT PREDICTION</h3>
+    <p>Market: ${$("market").selectedOptions[0].textContent}</p>
+    <h1 style="font-size:65px;color:#00dd99">
+      ${candidate}
+    </h1>
+    <h2 id="prediction-countdown">
+      15 seconds remaining
+    </h2>
+    <p>Analysis period: 12 seconds</p>
+    <p>New ticks analysed: ${newTicks.length}</p>
+    <p>Selection method: Least frequent digit in sample</p>
+    <p>Prediction is a statistical candidate, not a guaranteed outcome.</p>
+  `;
+
+  const countdown = document.getElementById(
+    "prediction-countdown"
+  );
+
+  const timer = setInterval(() => {
+    remaining--;
+
+    if (remaining <= 0) {
+      clearInterval(timer);
+
+      countdown.textContent = "PREDICTION EXPIRED";
+
+      runButton.disabled = ticks.length < 20;
+      return;
+    }
+
+    countdown.textContent =
+      remaining + " seconds remaining";
+
+  }, 1000);
 }
+
 $("market").addEventListener("change",e=>{
  const old=selected;
  send({forget:"ticks"});
