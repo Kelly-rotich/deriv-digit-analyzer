@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deriv Digit Analyser</title>
+<style>
+:root{--bg:#080e1b;--panel:#111c2e;--line:#26364d;--text:#edf3ff;--muted:#91a2bb;--green:#00d99a;--red:#ff5570;--blue:#55a5ff;--gold:#ffc65c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+header{padding:20px 5%;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:21px;margin:0;letter-spacing:1px}
+small,.muted{color:var(--muted)}
+.status{font-size:12px;color:var(--gold)}
+main{max-width:1150px;margin:24px auto;padding:0 16px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:17px;margin-bottom:14px}
+.panel h3{font-size:13px;color:var(--muted);margin:0 0 14px;text-transform:uppercase;letter-spacing:1px}
+.value{font-size:25px;font-weight:bold}
+select,button{background:#1a2940;color:white;border:1px solid #344965;border-radius:8px;padding:12px;font-size:14px}
+select{width:100%;margin-top:8px}
+button{cursor:pointer;font-weight:bold}
+button:disabled{opacity:.5;cursor:not-allowed}
+.green{background:var(--green);color:#071b17;border:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.digit{font-size:65px;font-weight:bold;text-align:center;color:var(--green);padding:12px}
+.digits{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.digitbox{background:#1a2940;border-radius:7px;text-align:center;padding:10px 2px}
+.digitbox b{display:block;font-size:18px}
+.bar{height:5px;background:#26364d;border-radius:8px;margin-top:7px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--green)}
+#report{line-height:1.7;min-height:80px}
+#ticks{display:flex;gap:6px;flex-wrap:wrap}
+.tick{background:#1a2940;padding:8px;border-radius:6px;font-weight:bold}
+.match{border-color:var(--green)}
+.differ{border-color:var(--red)}
+@media(max-width:700px){.grid{grid-template-columns:1fr 1fr}.digits{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:430px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+ <h1>DERIV DIGIT ANALYSER</h1>
+ <div class="status" id="connection">● DISCONNECTED</div>
+</header>
+<main>
+ <section class="grid">
+  <div class="panel">
+   <h3>Market selection</h3>
+   <select id="market"><option value="">Loading markets...</option></select>
+  </div>
+  <div class="panel">
+   <h3>Latest quote</h3>
+   <div class="value" id="quote">--</div>
+   <small id="symbolName">Waiting for market</small>
+  </div>
+  <div class="panel">
+   <h3>Latest digit</h3>
+   <div class="digit" id="lastDigit">-</div>
+  </div>
+ </section>
+
+ <section class="panel">
+  <h3>Live digit stream</h3>
+  <div id="ticks"><span class="muted">Waiting for live ticks...</span></div>
+ </section>
+
+ <section class="grid">
+  <div class="panel">
+   <h3>Contract type</h3>
+   <select id="contract">
+    <option value="MATCH">MATCH</option>
+    <option value="DIFFER">DIFFER</option>
+   </select>
+  </div>
+  <div class="panel">
+   <h3>Choose digit</h3>
+   <select id="digit">
+    <option value="0">Digit 0</option><option value="1">Digit 1</option>
+    <option value="2">Digit 2</option><option value="3">Digit 3</option>
+    <option value="4">Digit 4</option><option value="5">Digit 5</option>
+    <option value="6">Digit 6</option><option value="7">Digit 7</option>
+    <option value="8">Digit 8</option><option value="9">Digit 9</option>
+   </select>
+  </div>
+  <div class="panel">
+   <h3>Duration</h3>
+   <div class="value">2 TICKS</div>
+   <small>Analysis only — no trades</small>
+  </div>
+ </section>
+
+ <section class="panel">
+  <h3>Digit distribution — collected ticks</h3>
+  <div class="digits" id="distribution"></div>
+ </section>
+
+ <section class="panel">
+  <h3>Analysis controls</h3>
+  <p class="muted">The button evaluates the selected digit against outcomes two ticks after each historical observation.</p>
+  <div class="actions">
+   <button class="green" id="run" disabled>RUN ANALYSIS</button>
+   <button id="reconnect">RECONNECT</button>
+  </div>
+  <p class="muted" id="sample">Collected ticks: 0</p>
+ </section>
+
+ <section class="panel">
+  <h3>Analysis report</h3>
+  <div id="report" class="muted">Connect to a market and collect data, then click RUN ANALYSIS.</div>
+ </section>
+ <p class="muted" style="text-align:center;font-size:11px">Statistical analysis only. Historical results do not guarantee future outcomes.</p>
+</main>
+
+<script>
+const WS_URL="wss://api.derivws.com/trading/v1/options/ws/public";
+let ws=null, markets=[], selected="", ticks=[], reconnectTimer=null;
+const $=id=>document.getElementById(id);
+
+function setStatus(message,color){
+ $("connection").textContent="● "+message;
+ $("connection").style.color=color;
+}
+function send(data){
+ if(ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify(data));
+}
+function getDigit(price){
+ const s=String(price);
+ const clean=s.includes("e")?Number(price).toFixed(8):s;
+ const decimals=clean.includes(".")?clean.split(".")[1]:"";
+ return Number(decimals.slice(-1)||"0");
+}
+function connect(){
+ clearTimeout(reconnectTimer);
+ if(ws) ws.close();
+ setStatus("CONNECTING...", "#ffc65c");
+ ws=new WebSocket(WS_URL);
+
+ ws.onopen=()=>{
+  setStatus("CONNECTED","#00d99a");
+  send({active_symbols:"brief",req_id:1});
+ };
+ ws.onmessage=event=>{
+  let data;
+  try{data=JSON.parse(event.data)}catch(e){return}
+  if(data.error){setStatus("API ERROR: "+data.error.message,"#ff5570");return}
+
+  if(data.msg_type==="active_symbols"){
+   markets=(data.active_symbols||[]).filter(m=>
+    /volatility/i.test((m.display_name||"")+" "+(m.market_display_name||""))
+   );
+   const select=$("market");
+   select.innerHTML="";
+   markets.forEach(m=>{
+    const option=document.createElement("option");
+    option.value=m.symbol;
+    option.textContent=m.display_name||m.symbol;
+    select.appendChild(option);
+   });
+   if(markets.length){
+    selected=markets[0].symbol;
+    select.value=selected;
+    subscribe(selected);
+   }else{
+    select.innerHTML='<option value="">No Volatility Indices returned</option>';
+    setStatus("NO VOLATILITY MARKETS FOUND","#ff5570");
+   }
+  }
+
+  if(data.msg_type==="history" && data.history){
+   const prices=data.history.prices||[];
+   ticks=prices.map(Number).filter(Number.isFinite).map(price=>({price,digit:getDigit(price)}));
+   update();
+  }
+
+  if(data.msg_type==="tick" && data.tick){
+   if(data.tick.symbol!==selected)return;
+   const price=Number(data.tick.quote);
+   if(!Number.isFinite(price))return;
+   const item={price,digit:getDigit(data.tick.quote)};
+   if(!ticks.length || ticks[ticks.length-1].price!==price ||
+      data.tick.epoch!==ticks[ticks.length-1].epoch){
+    item.epoch=data.tick.epoch;
+    ticks.push(item);
+    if(ticks.length>2000)ticks.shift();
+   }
+   update();
+  }
+ };
+ ws.onerror=()=>setStatus("CONNECTION ERROR","#ff5570");
+ ws.onclose=()=>{
+  setStatus("DISCONNECTED — RETRYING","#ffc65c");
+  reconnectTimer=setTimeout(connect,4000);
+ };
+}
+function subscribe(symbol){
+ selected=symbol;
+ ticks=[];
+ $("quote").textContent="--";
+ $("lastDigit").textContent="-";
+ $("ticks").innerHTML='<span class="muted">Loading history...</span>';
+ $("symbolName").textContent=symbol;
+ $("report").textContent="Collecting market data...";
+ send({ticks_history:symbol,count:500,end:"latest",style:"ticks",req_id:2});
+ send({ticks:symbol,subscribe:1,req_id:3});
+}
+function update(){
+ if(!ticks.length)return;
+ const last=ticks[ticks.length-1];
+ $("quote").textContent=last.price;
+ $("lastDigit").textContent=last.digit;
+ $("sample").textContent="Collected ticks: "+ticks.length;
+ $("run").disabled=ticks.length<20;
+
+ const stream=ticks.slice(-20).reverse();
+ $("ticks").innerHTML=stream.map(t=>`<span class="tick">${t.digit}</span>`).join("");
+
+ const counts=Array(10).fill(0);
+ ticks.forEach(t=>counts[t.digit]++);
+ const total=ticks.length;
+ $("distribution").innerHTML=counts.map((n,d)=>{
+  const pct=total?n/total*100:0;
+  return `<div class="digitbox"><b>${d}</b><small>${pct.toFixed(1)}%</small><div class="bar"><span style="width:${pct}%"></span></div></div>`;
+ }).join("");
+}
+function analyse(){
+ const digit=Number($("digit").value);
+ const contract=$("contract").value;
+ const outcomes=[];
+ for(let i=0;i<ticks.length-2;i++){
+  outcomes.push(ticks[i+2].digit===digit);
+ }
+ const matches=outcomes.filter(Boolean).length;
+ const total=outcomes.length;
+ if(!total)return;
+ const matchRate=matches/total*100;
+ const differRate=100-matchRate;
+ const successRate=contract==="MATCH"?matchRate:differRate;
+ const successes=contract==="MATCH"?matches:total-matches;
+ const expected=contract==="MATCH"?10:90;
+ const recommendation=successRate>expected+2?"ABOVE BASELINE":
+  successRate<expected-2?"BELOW BASELINE":"NEAR BASELINE";
+
+ $("report").innerHTML=`
+ <p><b>Market:</b> ${$("market").selectedOptions[0]?.textContent||selected}</p>
+ <p><b>Selected digit:</b> ${digit} &nbsp; | &nbsp; <b>Contract:</b> ${contract}</p>
+ <p><b>Historical ${contract} success rate:</b> ${successRate.toFixed(2)}%</p>
+ <p><b>MATCH rate:</b> ${matchRate.toFixed(2)}% &nbsp; | &nbsp; <b>DIFFER rate:</b> ${differRate.toFixed(2)}%</p>
+ <p><b>Successful historical outcomes:</b> ${successes} of ${total}</p>
+ <p><b>Comparison with theoretical baseline:</b> ${recommendation} (${expected}% baseline)</p>
+ <p><b>Statistical sample:</b> ${total} two-tick observations</p>
+ <p><b>Assessment:</b> ${total<100?"Small sample — collect more ticks before interpreting the result.":total<300?"Moderate sample — results remain uncertain.":"Larger sample, but still not a guarantee of future performance."}</p>
+ <p class="muted">This is a historical frequency test, not a reliable forecast. Consecutive tick outcomes may not be independent, and past frequencies do not establish the next result.</p>`;
+}
+$("market").addEventListener("change",e=>{
+ const old=selected;
+ send({forget:"ticks"});
+ subscribe(e.target.value);
+});
+$("run").addEventListener("click",analyse);
+$("reconnect").addEventListener("click",connect);
+connect();
+</script>
+</body>
+</html>
