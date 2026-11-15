@@ -146,20 +146,28 @@ function connect(){
   try{data=JSON.parse(event.data)}catch(e){return}
   if(data.error){setStatus("API ERROR: "+data.error.message,"#ff5570");return}
 
+ 
   if(data.msg_type==="active_symbols"){
-   markets=(data.active_symbols||[]).filter(m=>
-    /volatility/i.test((m.display_name||"")+" "+(m.market_display_name||""))
-   );
+   markets=(data.active_symbols||[]).filter(m=>{
+    const name=m.underlying_symbol_name||m.display_name||"";
+    const symbol=m.underlying_symbol||m.symbol||"";
+    return /volatility/i.test(name) || /^(R_\d+|1HZ\d+V)$/.test(symbol);
+   });
+
    const select=$("market");
    select.innerHTML="";
+
    markets.forEach(m=>{
+    const symbol=m.underlying_symbol||m.symbol;
+    const name=m.underlying_symbol_name||m.display_name||symbol;
     const option=document.createElement("option");
-    option.value=m.symbol;
-    option.textContent=m.display_name||m.symbol;
+    option.value=symbol;
+    option.textContent=name;
     select.appendChild(option);
    });
+
    if(markets.length){
-    selected=markets[0].symbol;
+    selected=markets[0].underlying_symbol||markets[0].symbol;
     select.value=selected;
     subscribe(selected);
    }else{
@@ -167,6 +175,7 @@ function connect(){
     setStatus("NO VOLATILITY MARKETS FOUND","#ff5570");
    }
   }
+
 
   if(data.msg_type==="history" && data.history){
    const prices=data.history.prices||[];
