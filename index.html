@@ -272,11 +272,20 @@ async function analyse() {
     }
   });
 
-  const candidate = counts
-    .map((count, digit) => ({ digit, count }))
-    .sort((a, b) =>
-      a.count - b.count || a.digit - b.digit
-    )[0].digit;
+ const minCount = Math.min(...counts);
+
+const tiedDigits = counts
+  .map((count, digit) => ({ count, digit }))
+  .filter(item => item.count === minCount)
+  .map(item => item.digit);
+
+const lastDigit = ticks[ticks.length - 1]?.digit;
+
+const availableDigits = tiedDigits.filter(digit => digit !== lastDigit);
+
+const choices = availableDigits.length ? availableDigits : tiedDigits;
+
+const candidate = choices[Math.floor(Math.random() * choices.length)];
 
   let remaining = 15;
 
