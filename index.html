@@ -403,67 +403,115 @@ function send(payload){
  state.ws.send(JSON.stringify(payload));
 }
 
-function connect(){
- if(state.connected){disconnect();return}
 
- state.manualClose=false;
- clearTimeout(state.reconnect);
+function connect() {
+    if (state.connected) {
+        disconnect();
+        return;
+    }
 
- try{
-  state.ws=new WebSocket(WS_URL);
- }catch(e){
-  setStatus(false,"Connection failed");
-  return;
- }
+    state.manualClose = true;
+    clearTimeout(state.reconnect);
 
- setStatus(false,"Connecting…");
+    if (state.ws) {
+        try { state.ws.close(); } catch(e) {}
+    }
 
- state.ws.onopen=()=>{
-  state.connected=true;
-  setStatus(true,"Connected");
-  send({active_symbols:"brief",product_type:"basic"});
- };
+    state.manualClose = false;
 
- state.ws.onmessage=ev=>{
-  let m;
-  try{m=JSON.parse(ev.data)}catch{return}
+    const url =
+      "wss://ws.derivws.com/websockets/v3?app_id=1089";
 
-  if(m.error){
-   console.error("Deriv API:",m.error.message);
-   $("streamState").textContent=m.error.message;
-   return;
-  }
+    console.log("Connecting to Deriv:", url);
 
-  if(m.msg_type==="active_symbols"){
-   state.markets=(m.active_symbols||[]).filter(x=>
-    x.symbol&&/Volatility|Crash|Boom|Step|Jump|Range|Drift/i.test(x.display_name||"")
-   );
-   populateMarkets();
+    try {
+        state.ws = new WebSocket(url);
+    } catch (error) {
+        console.error("WebSocket creation error:", error);
+        setStatus(false, "Creation failed");
+        return;
+    }
 
-   if(!state.symbol){
-    const preferred=state.markets.find(x=>/Volatility 100 Index/i.test(x.display_name))
-      ||state.markets[0];
-    if(preferred)selectMarket(preferred.symbol);
-   }
-  }
+    setStatus(false, "Connecting...");
 
-  if(m.msg_type==="tick")handleTick(m.tick);
- };
+    state.ws.onopen = function(event) {
+        console.log("DERIV CONNECTED:", event);
 
- state.ws.onerror=()=>{
-  setStatus(false,"Connection error");
- };
+        state.connected = true;
+        setStatus(true, "Connected");
 
- state.ws.onclose=()=>{
-  state.connected=false;
-  state.subId=null;
-  $("streamState").textContent="Disconnected";
-  setStatus(false,"Disconnected");
+        send({
+            active_symbols: "brief",
+            product_type: "basic"
+        });
 
-  if(!state.manualClose){
-   state.reconnect=setTimeout(connect,3000);
-  }
- };
+        send({ ping: 1 });
+    };
+
+    state.ws.onmessage = function(event) {
+        console.log("DERIV RESPONSE:", event.data);
+
+        let data;
+
+        try {
+            data = JSON.parse(event.data);
+        } catch(error) {
+            console.error("Invalid response:", error);
+            return;
+        }
+
+        if (data.error) {
+            console.error("DERIV API ERROR:", data.error);
+            $("streamState").textContent =
+                data.error.message;
+            return;
+        }
+
+        if (data.msg_type === "active_symbols") {
+            state.markets = (data.active_symbols || [])
+                .filter(m =>
+                    m.symbol &&
+                    /Volatility|Crash|Boom|Step|Jump|Range|Drift/i
+                    .test(m.display_name || "")
+                );
+
+            populateMarkets();
+
+            if (!state.symbol && state.markets.length) {
+                const preferred = state.markets.find(
+                    m => /Volatility 100 Index/i.test(m.display_name)
+                ) || state.markets[0];
+
+                selectMarket(preferred.symbol);
+            }
+        }
+
+        if (data.msg_type === "tick") {
+            handleTick(data.tick);
+        }
+    };
+
+    state.ws.onerror = function(event) {
+        console.error("WEBSOCKET ERROR:", event);
+        setStatus(false, "Connection error");
+    };
+
+    state.ws.onclose = function(event) {
+        console.error(
+            "WEBSOCKET CLOSED",
+            "Code:", event.code,
+            "Reason:", event.reason,
+            "Clean:", event.wasClean
+        );
+
+        state.connected = false;
+        state.subId = null;
+
+        setStatus(false, "Disconnected");
+
+        $("streamState").textContent =
+            "Closed: " + event.code;
+    };
 }
 
 function disconnect(){
