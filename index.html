@@ -3,91 +3,76 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#20366f">
 <title>Deriv Digit Analyser</title>
 <style>
 :root{--ink:#171b31;--muted:#6d7283;--blue:#20366f;--blue2:#3159ad;--line:#e4e7ef;--paper:#f4f5f9;--white:#fff;--green:#16865b;--red:#c54a58}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 Inter,system-ui,Segoe UI,Arial,sans-serif}
-.wrap{max-width:1180px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand h1{font-size:24px;margin:0;font-weight:800;letter-spacing:-.5px}.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}.pill{border-radius:99px;padding:7px 12px;font-size:12px;font-weight:700;background:#fff0f0;color:var(--red);border:1px solid #f1d6d9}.pill.live{background:#e8f7f0;color:var(--green);border-color:#c9ebdc}
-.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.95fr);gap:16px}.panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 5px 20px #18204408}.panel h2{font-size:16px;margin:0 0 12px}.connection{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.subtle{font-size:12px;color:var(--muted)}button,select{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:11px 15px;font-weight:750}.primary{background:var(--blue);color:white}.secondary{background:#edf1fb;color:var(--blue)}button:disabled{opacity:.5;cursor:not-allowed}.stream{background:#111629;color:white;border-radius:15px;padding:16px;margin-bottom:14px}.streamhead{display:flex;justify-content:space-between;align-items:center;color:#aeb8d4;font-size:11px;font-weight:800;letter-spacing:1.4px}.streammain{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin-top:12px}.quote{font-size:27px;font-weight:800;letter-spacing:.3px}.lastdigit{font-size:28px;font-weight:900;color:#73a6ff;background:#1e2b4b;border-radius:12px;min-width:52px;text-align:center;padding:8px}.recent{display:flex;gap:7px;margin-top:12px;align-items:center;flex-wrap:wrap}.digit-chip{background:#26314b;color:#fff;padding:5px 9px;border-radius:7px;font-weight:800}.muted-chip{font-size:10px;color:#aeb8d4;letter-spacing:1px;margin-right:4px}
-.outcomes{display:grid;grid-template-columns:1fr 76px 1fr;gap:10px;align-items:center;margin:14px 0}.outcome{border:1.5px solid var(--line);background:white;color:var(--ink);min-height:72px;font-size:15px}.outcome.active{border-color:var(--blue2);background:#eef3ff;color:var(--blue)}.bigdigit{width:72px;height:72px;border-radius:50%;background:#101a3b;color:#fff;display:grid;place-items:center;font-size:30px;font-weight:900;border:4px solid #e6eaf5}.duration{text-align:right;color:var(--muted);font-size:11px;margin-top:-5px}.digits{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin:10px 0 16px}.digit{padding:9px 0;border:1px solid var(--line);background:white;color:var(--ink);border-radius:9px;font-weight:800}.digit.selected{background:var(--blue);color:white;border-color:var(--blue)}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.metric{border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}.metric .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}.metric strong{display:block;font-size:20px;margin:6px 0 1px}.metric small{color:var(--muted);font-size:10px}.rightcol{display:flex;flex-direction:column;gap:16px}.field{margin-bottom:13px}.field label{display:block;font-size:11px;font-weight:800;color:#5d6375;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}.field select{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)}.barrow{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:12px 0 5px}.bar{height:7px;background:#edf0f6;border-radius:20px;overflow:hidden}.bar span{display:block;height:100%;background:#426ac0;width:0%}.dist{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:12px}.distitem{text-align:center;font-size:11px;color:var(--muted)}.distitem b{display:block;color:var(--ink);font-size:12px;margin-bottom:4px}.distbar{height:62px;background:#eef1f7;border-radius:7px;display:flex;align-items:end;overflow:hidden}.distbar span{display:block;width:100%;background:#5072bd;border-radius:6px 6px 0 0}.note{font-size:11px;color:var(--muted);margin:12px 0 0}.statusline{font-size:12px;color:var(--muted);margin-top:8px;min-height:18px}.error{color:var(--red)}.good{color:var(--green)}.footer{font-size:11px;color:var(--muted);text-align:center;padding:18px}
-/* Mobile-first layout */
-.wrap{max-width:620px;padding:12px}.top{align-items:flex-start;margin-bottom:12px}.brand h1{font-size:19px;line-height:1.2}.brand p{font-size:11px}.layout{display:flex;flex-direction:column;gap:12px}.rightcol{order:-1}.panel{padding:14px;border-radius:16px}.connection{align-items:flex-start}.connection .primary{padding:10px 12px;font-size:12px}.stream{padding:14px}.quote{font-size:23px;overflow-wrap:anywhere}.lastdigit{font-size:25px;min-width:48px}.outcomes{grid-template-columns:1fr 58px 1fr;gap:7px}.outcome{min-height:58px;padding:9px 4px;font-size:13px}.bigdigit{width:58px;height:58px;font-size:25px}.digits{grid-template-columns:repeat(5,1fr);gap:7px}.digit{padding:12px 0;font-size:15px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.metric{padding:10px}.metric strong{font-size:18px}.dist{gap:4px}.distbar{height:48px}.distitem{font-size:9px}.analysis-action{width:100%;padding:15px;background:#3159ad;color:#fff;font-size:15px;border-radius:12px;margin:14px 0 8px}.analysis-card{background:#101a32;color:#fff;border-radius:14px;padding:15px;margin-top:12px}.analysis-card h2{color:#fff;margin:0 0 8px}.analysis-result{font-size:22px;font-weight:900;margin:8px 0}.analysis-copy{font-size:12px;color:#c5cee2}.checks{display:grid;gap:7px;margin-top:12px}.condition-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.condition-panel{background:#1d2946;border:1px solid #344363;border-radius:11px;padding:11px;min-width:0}.condition-panel h3{font-size:14px;margin:0 0 8px;color:#fff}.condition-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #344363;font-size:11px;color:#d4dcef}.condition-row b{white-space:nowrap}.pass{color:#72d6a8}.fail{color:#ffc477}.condition-note{font-size:10px;color:#aebbd4;margin-top:8px}@media(max-width:420px){.condition-grid{grid-template-columns:1fr}}.check{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:9px;background:#1d2946;font-size:12px}.check b{color:#dce7ff}.field select{font-size:14px;padding:12px}.footer{padding:14px;font-size:10px}
-@media(min-width:800px){.wrap{max-width:1180px;padding:22px}.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.95fr);gap:16px}.rightcol{order:0}.digits{grid-template-columns:repeat(10,1fr)}.metrics{grid-template-columns:repeat(4,1fr)}.brand h1{font-size:24px}.analysis-action{max-width:260px}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 Inter,system-ui,Segoe UI,Arial,sans-serif}.wrap{max-width:1180px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand h1{font-size:24px;margin:0;font-weight:800;letter-spacing:.3px}.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}.pill{border-radius:999px;background:#eceef4;color:var(--muted);padding:7px 12px;font-size:12px;font-weight:800;white-space:nowrap}.pill.live{background:#e5f6ef;color:var(--green)}.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.95fr);gap:16px}.panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 5px 20px #202d5010;margin-bottom:16px}.panel h2{font-size:16px;margin:0 0 12px}.connection{display:flex;justify-content:space-between;align-items:center;gap:12px}.connection h2{margin:0 0 3px}.subtle,.note{color:var(--muted);font-size:12px}.primary,.analysis-action{border:0;border-radius:11px;background:var(--blue);color:white;font-weight:800;padding:11px 16px;cursor:pointer}.primary:hover,.analysis-action:hover{background:var(--blue2)}.stream{margin:16px 0 10px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#172858,#294886);color:white}.streamhead{display:flex;justify-content:space-between;font-size:10px;font-weight:800;letter-spacing:1px;color:#cbd8f6}.streammain{display:flex;justify-content:space-between;align-items:center;margin:14px 0}.quote{font-size:27px;font-weight:800;word-break:break-all}.lastdigit{font-size:40px;font-weight:900;color:#b9f4d5}.recent{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.muted-chip{font-size:9px;letter-spacing:.8px;color:#cbd8f6;font-weight:800}.digit-chip{display:inline-grid;place-items:center;width:22px;height:22px;background:#ffffff25;border-radius:7px;font-size:12px;font-weight:800;margin-right:4px}.outcomes{display:grid;grid-template-columns:1fr 76px 1fr;gap:10px;align-items:center;margin:14px 0}.outcome{border:1.5px solid var(--line);background:white;color:var(--ink);min-height:54px;font-size:13px;font-weight:900;border-radius:12px;cursor:pointer}.outcome.active{border-color:var(--blue);background:#edf1fb;color:var(--blue)}.bigdigit{height:60px;display:grid;place-items:center;font-size:30px;font-weight:900;border-radius:14px;background:#f0f2f8}.duration{text-align:center;color:var(--muted);font-weight:800;font-size:10px;letter-spacing:.8px}.digits{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;margin:8px 0 14px}.digit{min-width:0;padding:9px 0;border:1px solid var(--line);border-radius:9px;background:white;font-weight:800;cursor:pointer}.digit.selected{background:var(--blue);border-color:var(--blue);color:white}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.metric{border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}.metric .label{font-size:10px;color:var(--muted)}.metric strong{display:block;font-size:19px;margin:3px 0;overflow-wrap:anywhere}.metric small{font-size:10px;color:var(--muted)}.analysis-action{width:100%;margin:14px 0 10px;min-height:46px}.analysis-card{border:1px solid #dfe5f4;border-radius:14px;background:#f8faff;padding:15px}.analysis-card h2{margin:0 0 5px}.analysis-result{font-weight:900;color:var(--blue);font-size:17px}.analysis-copy{color:var(--muted);font-size:12px;margin:4px 0 12px}.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:white}.ranking{width:100%;border-collapse:collapse;min-width:720px;font-size:11px}.ranking th,.ranking td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}.ranking th{background:#f4f6fb;color:#626a7d;font-size:10px}.ranking th:first-child,.ranking td:first-child{text-align:left}.ranking tr:last-child td{border-bottom:0}.ranking tr.best{background:#edf8f2}.ranking .rank{font-weight:900;color:var(--blue)}.legend{font-size:10px;color:var(--muted);margin:7px 0 0}.field{margin:12px 0}.field label{display:block;font-weight:800;font-size:12px;margin-bottom:5px}.field select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink)}.barrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin:12px 0 5px}.bar{height:8px;background:#edf0f6;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;width:0;background:var(--blue2);border-radius:99px;transition:width .2s}.dist{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;align-items:end;height:108px;padding:8px;border:1px solid var(--line);border-radius:12px}.distitem{text-align:center;font-size:9px;color:var(--muted);min-width:0}.distitem b{display:block;color:var(--ink);font-size:10px}.distbar{height:54px;display:flex;align-items:end;margin:3px 0}.distbar span{display:block;width:100%;min-height:2px;background:#9eb0dc;border-radius:4px 4px 0 0}.statusline{margin-top:14px;padding:10px;border-radius:10px;background:#f2f4f8;color:var(--muted);font-size:11px}.statusline.good{background:#e9f7f0;color:var(--green)}.statusline.error{background:#fff0f1;color:var(--red)}.note{line-height:1.5;margin:12px 0 0}.footer{text-align:center;color:var(--muted);font-size:11px;padding:4px 0 18px}
+@media(max-width:850px){.wrap{max-width:680px;padding:12px}.layout{display:flex;flex-direction:column;gap:0}.rightcol{order:-1}.panel{padding:14px;margin-bottom:12px}.brand h1{font-size:19px}.brand p{font-size:11px}.digits{gap:4px}.digit{padding:8px 0}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric strong{font-size:17px}}
+@media(max-width:390px){.wrap{padding:8px}.top{align-items:flex-start}.pill{font-size:10px;padding:6px 8px}.panel{padding:11px}.digits{gap:3px}.digit{font-size:12px}.outcomes{grid-template-columns:1fr 56px 1fr}.bigdigit{height:54px}.dist{gap:3px;padding:5px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <div class="brand"><h1>DERIV DIGIT ANALYSER</h1><p>Live digit stream · MATCH / DIFFER statistics · Analysis only</p></div>
-    <span class="pill" id="connectionBadge">Disconnected</span>
-  </header>
+  <header class="top"><div class="brand"><h1>DERIV DIGIT ANALYSER</h1><p>Live digit stream · Historical MATCH / DIFFER statistics · Analysis only</p></div><span class="pill" id="connectionBadge">Disconnected</span></header>
   <div class="layout">
     <main>
       <section class="panel">
         <div class="connection"><div><h2>Market connection</h2><div class="subtle" id="connectionText">Not connected to Deriv market data</div></div><button class="primary" id="connectBtn">Connect to Deriv</button></div>
-        <div class="stream">
-          <div class="streamhead"><span>● LIVE DIGIT STREAM</span><span id="streamState">WAITING</span></div>
-          <div class="streammain"><div><div class="subtle">LATEST QUOTE</div><div class="quote" id="quote">—</div></div><div><div class="subtle">LAST DIGIT</div><div class="lastdigit" id="latestDigit">—</div></div></div>
-          <div class="recent"><span class="muted-chip">RECENT DIGITS</span><span id="recentDigits" class="subtle">Waiting for ticks</span></div>
-        </div>
-        <div class="outcomes">
-          <button class="outcome" id="differBtn">DIFFER</button>
-          <div class="bigdigit" id="chosenDigit">5</div>
-          <button class="outcome active" id="matchBtn">MATCH</button>
-        </div>
-        <div class="duration">2 TICKS DURATION · ANALYSIS ONLY</div>
-        <div style="font-size:11px;font-weight:800;color:#646b7c;letter-spacing:.6px;margin-top:12px">SELECT DIGIT (0–9)</div>
-        <div class="digits" id="digitButtons"></div>
-        <div class="metrics">
-          <div class="metric"><div class="label">Historical hit rate</div><strong id="hitRate">—</strong><small id="hitCaption">Selected outcome</small></div>
-          <div class="metric"><div class="label">Digit frequency</div><strong id="digitRate">—</strong><small>Selected digit</small></div>
-          <div class="metric"><div class="label">Analysis sample</div><strong id="sampleSize">0</strong><small>2-tick observations</small></div>
-          <div class="metric"><div class="label">Data quality</div><strong id="quality">—</strong><small id="qualityCaption">Waiting for data</small></div>
-        </div>
+        <div class="stream"><div class="streamhead"><span>● LIVE DIGIT STREAM</span><span id="streamState">WAITING</span></div><div class="streammain"><div><div class="subtle" style="color:#cbd8f6">LATEST QUOTE</div><div class="quote" id="quote">—</div></div><div><div class="subtle" style="color:#cbd8f6">LAST DIGIT</div><div class="lastdigit" id="latestDigit">—</div></div></div><div class="recent"><span class="muted-chip">RECENT DIGITS</span><span id="recentDigits" class="subtle" style="color:#e0e7f8">Waiting for ticks</span></div></div>
+        <div class="outcomes"><button class="outcome" id="differBtn" aria-pressed="false">DIFFER</button><div class="bigdigit" id="chosenDigit">5</div><button class="outcome active" id="matchBtn" aria-pressed="true">MATCH</button></div>
+        <div class="duration">HISTORICAL NEXT-TICK OBSERVATIONS · ANALYSIS ONLY</div>
+        <div style="font-size:11px;font-weight:800;color:#646b7c;letter-spacing:.6px;margin-top:12px">SELECT DIGIT (0–9) FOR DETAIL</div><div class="digits" id="digitButtons"></div>
+        <div class="metrics"><div class="metric"><div class="label">Historical hit rate</div><strong id="hitRate">—</strong><small id="hitCaption">Selected outcome</small></div><div class="metric"><div class="label">95% Wilson interval</div><strong id="uncertainty">—</strong><small>Sampling uncertainty</small></div><div class="metric"><div class="label">Analysis sample</div><strong id="sampleSize">0</strong><small>Next-tick observations</small></div><div class="metric"><div class="label">Selected digit frequency</div><strong id="digitRate">—</strong><small id="frequencyCaption">Historical window</small></div></div>
         <button class="analysis-action" id="runAnalysisBtn">START ANALYSIS</button>
-        <section class="analysis-card" id="analysisCard" aria-live="polite">
-          <h2>Analysis report</h2>
-          <div class="analysis-result" id="analysisResult">WAITING FOR ANALYSIS</div>
-          <div class="analysis-copy" id="analysisSummary">Connect to Deriv, select a market and collect enough ticks, then tap Start Analysis.</div>
-          <div class="checks" id="analysisChecks"></div>
-        </section>
-        <p class="note">Historical statistics describe past observations only. They do not guarantee the next result.</p>
+        <section class="analysis-card" id="analysisCard" aria-live="polite"><h2>All-digit ranking</h2><div class="analysis-result" id="analysisResult">WAITING FOR ANALYSIS</div><div class="analysis-copy" id="analysisSummary">Connect to Deriv, choose MATCH or DIFFER, and start analysis to rank all ten digits.</div><div class="tablewrap"><table class="ranking"><thead><tr><th>Rank / digit</th><th>Recent frequency</th><th>Historical frequency</th><th>After latest digit¹</th><th>MATCH rate (95% interval)</th><th>DIFFER rate (95% interval)</th></tr></thead><tbody id="rankingBody"><tr><td colspan="6" style="text-align:center;color:#6d7283">No analysis yet.</td></tr></tbody></table></div><p class="legend">¹ Transition count and frequency for the next digit after the current latest digit. Rankings sort by the selected outcome’s historical rate; they describe this sample only, not future likelihood.</p></section>
+        <p class="note">Historical statistics are descriptive, not predictive. Random variation and statistical uncertainty remain; no digit is guaranteed or “due.” This page does not place trades or connect to a trading account.</p>
       </section>
     </main>
-    <aside class="rightcol">
-      <section class="panel">
-        <h2>Market &amp; analysis settings</h2>
-        <div class="field"><label for="marketSelect">Market</label><select id="marketSelect" disabled><option value="">Connect to load markets</option></select></div>
-        <div class="field"><label for="windowSelect">Analysis window</label><select id="windowSelect"><option value="250">Last 250 ticks</option><option value="500">Last 500 ticks</option><option value="1000">Last 1,000 ticks</option></select></div>
-        <div class="barrow"><span>Selected digit frequency</span><b id="selectedFreq">—</b></div><div class="bar"><span id="selectedBar"></span></div>
-        <div class="barrow"><span>Selected outcome frequency</span><b id="outcomeFreq">—</b></div><div class="bar"><span id="outcomeBar"></span></div>
-        <h2 style="margin-top:22px">Digit distribution</h2><div class="dist" id="distribution"></div>
-        <p class="note">Choose any active market after connecting. This tool requests public market data only and does not need a Deriv login token.</p>
-        <div class="statusline" id="statusLine" aria-live="polite">Ready to connect.</div>
-      </section>
-    </aside>
+    <aside class="rightcol"><section class="panel"><h2>Market &amp; analysis settings</h2><div class="field"><label for="marketSelect">Market</label><select id="marketSelect" disabled><option value="">Connect to load markets</option></select></div><div class="field"><label for="windowSelect">Analysis window</label><select id="windowSelect"><option value="250">Last 250 ticks</option><option value="500">Last 500 ticks</option><option value="1000" selected>Last 1,000 ticks</option><option value="5000">Last 5,000 ticks</option></select></div><div class="barrow"><span>Selected digit · recent</span><b id="selectedRecent">—</b></div><div class="bar"><span id="selectedBar"></span></div><div class="barrow"><span>Selected outcome · historical</span><b id="outcomeFreq">—</b></div><div class="bar"><span id="outcomeBar"></span></div><h2 style="margin-top:22px">Historical digit distribution</h2><div class="dist" id="distribution"></div><p class="note">Choose any active market after connecting. This tool requests public market data only and does not need a Deriv login token.</p><div class="statusline" id="statusLine" aria-live="polite">Ready to connect.</div></section></aside>
   </div>
-  <div class="footer">Independent market-data analyser · No trades are placed · 2-tick historical comparison</div>
+  <div class="footer">Independent market-data analyser · No trades are placed · Public market data only</div>
 </div>
 <script>(() => {
+  "use strict";
   const PUBLIC_WS = "wss://api.derivws.com/trading/v1/options/ws/public";
   const $ = id => document.getElementById(id);
-
   let ws = null, symbols = [], selectedSymbol = "", selectedDigit = 5, outcome = "MATCH";
-  let ticks = [], historicalTicks = [], subscriptionId = null, reconnectTimer = null, manualClose = false;
+  let ticks = [], subscriptionId = null, reconnectTimer = null, manualClose = false;
+  let marketPrecision = null, historyRequestId = 0, requestCounter = 10, analysisStarted = false;
 
-  const setStatus = (msg, type="") => {
-    $("statusLine").textContent = msg;
-    $("statusLine").className = "statusline " + type;
-  };
-
-  const lastDigit = quote => {
-    const s = String(quote);
-    const decimals = (s.split(".")[1] || "");
-    return Number((decimals || "0").slice(-1));
-  };
-
+  const setStatus = (msg, type="") => { $("statusLine").textContent = msg; $("statusLine").className = "statusline " + type; };
+  const clampPrecision = value => Number.isInteger(value) && value >= 0 && value <= 12 ? value : null;
+  function precisionFromPip(pip) {
+    const n = Number(pip);
+    if (!Number.isFinite(n) || n <= 0 || n >= 1) return null;
+    const places = Math.round(-Math.log10(n));
+    return Math.abs(Math.pow(10, -places) - n) < Math.max(1e-12, n * 1e-8) ? clampPrecision(places) : null;
+  }
+  function precisionForSymbol(symbol) {
+    const meta = symbols.find(item => item.symbol === symbol);
+    if (!meta) return null;
+    return clampPrecision(Number(meta.pip_size)) ?? precisionFromPip(meta.pip);
+  }
+  function quotePrecision(entry) {
+    if (Number.isInteger(entry.precision)) return entry.precision;
+    if (Number.isInteger(marketPrecision)) return marketPrecision;
+    const raw = String(entry.raw ?? entry.quote);
+    const decimal = raw.toLowerCase().split("e")[0].split(".")[1] || "";
+    return Math.min(decimal.length, 12);
+  }
+  function lastDigit(entry) {
+    const q = Number(entry.quote);
+    if (!Number.isFinite(q)) return null;
+    const places = quotePrecision(entry);
+    const fixed = q.toFixed(places);
+    const digits = fixed.replace(/\D/g, "");
+    return digits.length ? Number(digits[digits.length - 1]) : 0;
+  }
+  function makeTick(quote, precision, raw) {
+    const q = Number(quote);
+    return Number.isFinite(q) ? {quote:q, precision:clampPrecision(precision), raw:raw ?? String(quote)} : null;
+  }
   function setConnection(connected, text) {
     $("connectionBadge").textContent = connected ? "Connected" : "Disconnected";
     $("connectionBadge").className = "pill" + (connected ? " live" : "");
@@ -95,548 +80,176 @@
     $("streamState").textContent = connected ? "LIVE" : "WAITING";
     $("connectBtn").textContent = connected ? "Disconnect" : "Connect to Deriv";
   }
-
   function send(data) {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(data));
-    } else {
-      setStatus("WebSocket is not open. Reconnect and try again.", "error");
-    }
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
+    else setStatus("WebSocket is not open. Reconnect and try again.", "error");
   }
-
   function connect() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
-      manualClose = true;
-      clearTimeout(reconnectTimer);
-      ws.close();
-      return;
+      manualClose = true; clearTimeout(reconnectTimer);
+      if (subscriptionId) send({forget:subscriptionId});
+      ws.close(); return;
     }
-
-    manualClose = false;
-    clearTimeout(reconnectTimer);
-    setStatus("Opening secure connection to Deriv…");
+    manualClose = false; clearTimeout(reconnectTimer); setStatus("Opening secure connection to Deriv…");
     setConnection(false, "Connecting to public market data…");
-
-    try {
-      ws = new WebSocket(PUBLIC_WS);
-    } catch(e) {
-      setStatus("Could not create WebSocket: " + e.message, "error");
-      return;
-    }
-
+    try { ws = new WebSocket(PUBLIC_WS); }
+    catch (e) { setStatus("Could not create WebSocket: " + e.message, "error"); return; }
     ws.onopen = () => {
       setConnection(true, "Connected to Deriv public market data");
       setStatus("Connected. Loading all active markets…", "good");
-      send({active_symbols:"brief", req_id:1});
-      send({ping:1});
+      send({active_symbols:"brief", req_id:1}); send({ping:1});
     };
-
     ws.onmessage = event => {
-      let data;
-      try {
-        data = JSON.parse(event.data);
-      } catch {
-        return;
-      }
-
+      let data; try { data = JSON.parse(event.data); } catch { return; }
       if (data.error) {
         const detail = data.error.message || data.error.code || JSON.stringify(data.error);
-        setStatus("Deriv API error: " + detail, "error");
-        return;
+        setStatus("Deriv API error: " + detail, "error"); return;
       }
-
       if (data.msg_type === "active_symbols") {
-        const marketList = Array.isArray(data.active_symbols)
-          ? data.active_symbols
-          : (Array.isArray(data.active_symbols?.symbols)
-              ? data.active_symbols.symbols : []);
-        loadMarkets(marketList);
+        const list = Array.isArray(data.active_symbols) ? data.active_symbols : (Array.isArray(data.active_symbols?.symbols) ? data.active_symbols.symbols : []);
+        loadMarkets(list);
       }
-
       if (data.msg_type === "history") {
-        const prices = data.history && data.history.prices
-          ? data.history.prices : [];
-
-        historicalTicks = prices.map(Number).filter(Number.isFinite);
-        ticks = historicalTicks.slice(-Number($("windowSelect").value));
+        if (data.echo_req?.req_id && data.echo_req.req_id !== historyRequestId) return;
+        const history = data.history || {};
+        const p = clampPrecision(Number(history.pip_size ?? data.pip_size)) ?? marketPrecision;
+        if (Number.isInteger(p)) marketPrecision = p;
+        ticks = (Array.isArray(history.prices) ? history.prices : []).map(price => makeTick(price, marketPrecision, price)).filter(Boolean);
+        ticks = ticks.slice(-Number($("windowSelect").value));
         render();
-
         if (selectedSymbol) {
-          send({ticks:selectedSymbol, subscribe:1, req_id:3});
-          setStatus(
-            "Loaded " + ticks.length + " historical ticks. Live stream subscribed.",
-            "good"
-          );
+          send({ticks:selectedSymbol, subscribe:1, req_id:++requestCounter});
+          setStatus("Loaded " + ticks.length + " historical ticks. Live stream subscribed.", "good");
         }
       }
-
       if (data.msg_type === "tick" && data.tick) {
-        const q = Number(data.tick.quote);
-
-        if (Number.isFinite(q)) {
-          ticks.push(q);
-          const cap = Number($("windowSelect").value) + 2;
-
-          if (ticks.length > cap) {
-            ticks.splice(0, ticks.length-cap);
-          }
-
+        if (data.tick.symbol && selectedSymbol && data.tick.symbol !== selectedSymbol) return;
+        const tickPrecision = clampPrecision(Number(data.tick.pip_size));
+        if (tickPrecision !== null) marketPrecision = tickPrecision;
+        const entry = makeTick(data.tick.quote, tickPrecision ?? marketPrecision, data.tick.quote);
+        if (entry) {
+          ticks.push(entry);
+          const cap = Number($("windowSelect").value) + 1;
+          if (ticks.length > cap) ticks.splice(0, ticks.length-cap);
           render();
         }
-
-        if (data.subscription && data.subscription.id) {
-          subscriptionId = data.subscription.id;
-        }
-      }
-
-      if (data.msg_type === "ping") {
-        /* keepalive response */
+        if (data.subscription?.id) subscriptionId = data.subscription.id;
       }
     };
-
-    ws.onerror = () => {
-      setStatus(
-        "WebSocket connection failed. Check network, firewall or browser extensions.",
-        "error"
-      );
-    };
-
+    ws.onerror = () => setStatus("WebSocket connection failed. Check network, firewall or browser extensions.", "error");
     ws.onclose = event => {
-      setConnection(
-        false,
-        "Disconnected" + (event.code ? " (code " + event.code + ")" : "")
-      );
-
-      if (!manualClose) {
-        setStatus("Connection closed. Retrying in 5 seconds…", "error");
-        reconnectTimer = setTimeout(connect, 5000);
-      } else {
-        setStatus("Disconnected by user.");
-      }
+      subscriptionId = null;
+      setConnection(false, "Disconnected" + (event.code ? " (code " + event.code + ")" : ""));
+      if (!manualClose) { setStatus("Connection closed. Retrying in 5 seconds…", "error"); reconnectTimer = setTimeout(connect, 5000); }
+      else setStatus("Disconnected by user.");
     };
   }
-
   function loadMarkets(list) {
-    // Accept valid symbols even when Deriv omits display_name.
-    symbols = (Array.isArray(list) ? list : [])
-      .filter(x => x && (x.symbol || x.underlying_symbol))
-      .map(x => ({
-        ...x,
-        symbol: x.symbol || x.underlying_symbol,
-        display_name: x.display_name ||
-          x.underlying_symbol_name ||
-          x.symbol ||
-          x.underlying_symbol,
-        market_display_name: x.market_display_name || x.market || "Other"
-      }));
-
-    const select = $("marketSelect");
-    select.innerHTML = "";
-
+    symbols = (Array.isArray(list) ? list : []).filter(x => x && (x.symbol || x.underlying_symbol)).map(x => ({
+      ...x, symbol:x.symbol || x.underlying_symbol,
+      display_name:x.display_name || x.underlying_symbol_name || x.symbol || x.underlying_symbol,
+      market_display_name:x.market_display_name || x.market || "Other"
+    }));
+    const select = $("marketSelect"); select.innerHTML = "";
     const groups = new Map();
-
-    symbols.forEach(s => {
-      const group = s.market_display_name || s.market || "Other";
-
-      if (!groups.has(group)) {
-        groups.set(group, []);
-      }
-
-      groups.get(group).push(s);
-    });
-
+    symbols.forEach(s => { const group = s.market_display_name || s.market || "Other"; if (!groups.has(group)) groups.set(group, []); groups.get(group).push(s); });
     [...groups.keys()].sort().forEach(group => {
-      const optgroup = document.createElement("optgroup");
-      optgroup.label = group;
-
-      groups.get(group)
-        .sort((a,b) => a.display_name.localeCompare(b.display_name))
-        .forEach(s => {
-          const option = document.createElement("option");
-          option.value = s.symbol;
-          option.textContent = s.display_name + " (" + s.symbol + ")";
-          optgroup.appendChild(option);
-        });
-
-      select.appendChild(optgroup);
+      const optgroup = document.createElement("optgroup"); optgroup.label = group;
+      groups.get(group).sort((a,b) => String(a.display_name).localeCompare(String(b.display_name))).forEach(s => {
+        const option = document.createElement("option"); option.value = s.symbol; option.textContent = s.display_name + " (" + s.symbol + ")"; optgroup.appendChild(option);
+      }); select.appendChild(optgroup);
     });
-
     select.disabled = !symbols.length;
-
     if (symbols.length) {
-      const preferred =
-        symbols.find(s => /1HZ75V/.test(s.symbol)) ||
-        symbols.find(s => /volatility/i.test(s.market_display_name || "")) ||
-        symbols[0];
-
-      select.value = preferred.symbol;
-      chooseMarket(preferred.symbol);
-
-      setStatus(
-        "Markets loaded: " + symbols.length + ". Loading " +
-        preferred.display_name + "…",
-        "good"
-      );
-    } else {
-      setStatus(
-        "Deriv sent an active_symbols response, but it contained no usable symbols. Disconnect and reconnect; if it repeats, send me the exact status/error shown here.",
-        "error"
-      );
-    }
+      const preferred = symbols.find(s => /1HZ75V/.test(s.symbol)) || symbols.find(s => /volatility/i.test(s.market_display_name || "")) || symbols[0];
+      select.value = preferred.symbol; chooseMarket(preferred.symbol);
+      setStatus("Markets loaded: " + symbols.length + ". Loading " + preferred.display_name + "…", "good");
+    } else setStatus("Deriv sent no usable market symbols. Disconnect and reconnect, then check the API response if this repeats.", "error");
   }
-
   function chooseMarket(symbol) {
-    selectedSymbol = symbol;
-    ticks = [];
-    historicalTicks = [];
-    subscriptionId = null;
-    render();
-
-    send({
-      ticks_history:symbol,
-      count:Number($("windowSelect").value),
-      end:"latest",
-      style:"ticks",
-      req_id:2
-    });
+    if (subscriptionId) { send({forget:subscriptionId}); subscriptionId = null; }
+    selectedSymbol = symbol; marketPrecision = precisionForSymbol(symbol); ticks = []; analysisStarted = false; historyRequestId = ++requestCounter; render();
+    send({ticks_history:symbol, count:Number($("windowSelect").value), end:"latest", style:"ticks", req_id:historyRequestId});
   }
-
-  function getStats() {
-    const n = ticks.length;
+  function wilsonInterval(successes, total) {
+    if (!total) return null;
+    const z=1.959963984540054, p=successes/total, z2=z*z, den=1+z2/total;
+    const center=(p+z2/(2*total))/den;
+    const margin=z*Math.sqrt((p*(1-p)+z2/(4*total))/total)/den;
+    return {low:Math.max(0,(center-margin)*100), high:Math.min(100,(center+margin)*100)};
+  }
+  function pct(value, digits=1) { return Number.isFinite(value) ? value.toFixed(digits)+"%" : "—"; }
+  function stats() {
     const windowTicks = ticks.slice(-Number($("windowSelect").value));
-    const digitCounts = Array(10).fill(0);
-
-    windowTicks.forEach(q => digitCounts[lastDigit(q)]++);
-
-    const observations = Math.max(0, windowTicks.length - 2);
-    let matchCount = 0;
-
-    for (let i=0; i<observations; i++) {
-      if (lastDigit(windowTicks[i+2]) === selectedDigit) {
-        matchCount++;
-      }
-    }
-
-    const matchRate = observations
-      ? matchCount / observations * 100 : null;
-
-    const differRate = matchRate === null
-      ? null : 100-matchRate;
-
-    const digitFreq = windowTicks.length
-      ? digitCounts[selectedDigit]/windowTicks.length*100 : null;
-
-    return {
-      windowTicks,
-      digitCounts,
-      observations,
-      matchRate,
-      differRate,
-      digitFreq,
-      chosenRate:outcome==="MATCH" ? matchRate : differRate
-    };
+    const digits = windowTicks.map(lastDigit);
+    const valid = digits.map((d,i) => ({d,i})).filter(x => x.d !== null);
+    const counts = Array(10).fill(0); valid.forEach(x => counts[x.d]++);
+    const observations = Array.from({length:Math.max(0,digits.length-1)}, (_,i) => [digits[i],digits[i+1]]).filter(pair => pair[0] !== null && pair[1] !== null);
+    const hits = Array(10).fill(0), transitions = Array.from({length:10},()=>Array(10).fill(0));
+    observations.forEach(([from,to]) => { hits[to]++; transitions[from][to]++; });
+    const recentN = Math.min(50, valid.length), recent = Array(10).fill(0);
+    valid.slice(-recentN).forEach(x => recent[x.d]++);
+    const latest = valid.length ? valid[valid.length-1].d : null;
+    const afterLatest = Array(10).fill(0); let transitionTotal=0;
+    if (latest !== null) { afterLatest.splice(0,10,...transitions[latest]); transitionTotal=afterLatest.reduce((a,b)=>a+b,0); }
+    return {windowTicks, digits, validCount:valid.length, counts, recent, recentN, observations:observations.length, hits, transitions, latest, afterLatest, transitionTotal};
   }
-
   function render() {
-    const s = getStats();
-    const arr = s.windowTicks;
-
-    $("chosenDigit").textContent = selectedDigit;
-    $("sampleSize").textContent = s.observations;
-
-    $("hitRate").textContent = s.chosenRate === null
-      ? "—" : s.chosenRate.toFixed(1)+"%";
-
-    $("hitCaption").textContent = outcome + " · historical";
-
-    $("digitRate").textContent = s.digitFreq === null
-      ? "—" : s.digitFreq.toFixed(1)+"%";
-
-    $("quality").textContent =
-      s.observations >= 200 ? "Good" :
-      s.observations >= 50 ? "Fair" :
-      s.observations > 0 ? "Low" : "—";
-
-    $("qualityCaption").textContent =
-      s.observations + " valid observations";
-
-    $("selectedFreq").textContent = s.digitFreq === null
-      ? "—" : s.digitFreq.toFixed(1)+"%";
-
-    $("selectedBar").style.width = (s.digitFreq || 0)+"%";
-
-    $("outcomeFreq").textContent = s.chosenRate === null
-      ? "—" : s.chosenRate.toFixed(1)+"%";
-
-    $("outcomeBar").style.width = (s.chosenRate || 0)+"%";
-
-    if (arr.length) {
-      const latest = arr[arr.length-1];
-      const d = lastDigit(latest);
-
-      $("quote").textContent = String(latest);
-      $("latestDigit").textContent = d;
-
-      $("recentDigits").innerHTML = arr.slice(-5)
-        .map(q => '<span class="digit-chip">'+lastDigit(q)+'</span>')
-        .join("");
-    }
-
-    $("digitButtons").innerHTML = "";
-
-    for(let d=0; d<10; d++) {
-      const b = document.createElement("button");
-      b.className = "digit" + (d===selectedDigit ? " selected" : "");
-      b.textContent = d;
-
-      b.addEventListener("click", () => {
-        selectedDigit = d;
-        render();
-      });
-
-      $("digitButtons").appendChild(b);
-    }
-
-    $("distribution").innerHTML = "";
-
-    for(let d=0; d<10; d++) {
-      const pct = arr.length
-        ? s.digitCounts[d]/arr.length*100 : 0;
-
-      const item = document.createElement("div");
-      item.className = "distitem";
-
-      item.innerHTML =
-        '<b>'+d+'</b><div class="distbar"><span style="height:'+
-        pct+'%"></span></div><div>'+
-        (arr.length ? pct.toFixed(0)+'%' : '—')+
-        '</div>';
-
-      $("distribution").appendChild(item);
-    }
-
-    $("matchBtn").classList.toggle("active", outcome==="MATCH");
-    $("differBtn").classList.toggle("active", outcome==="DIFFER");
-  }  function wilsonInterval(successes, total) {
-    if (!total) return {low:0, high:100};
-
-    const z = 1.96;
-    const p = successes / total;
-    const z2 = z*z;
-    const denominator = 1 + z2/total;
-
-    const centre = (p + z2/(2*total)) / denominator;
-    const margin = z * Math.sqrt(
-      (p*(1-p) + z2/(4*total)) / total
-    ) / denominator;
-
-    return {
-      low:Math.max(0,(centre-margin)*100),
-      high:Math.min(100,(centre+margin)*100)
-    };
+    const s=stats(), n=s.observations;
+    $("chosenDigit").textContent=selectedDigit;
+    const isMatch=outcome==="MATCH", success=isMatch?s.hits[selectedDigit]:n-s.hits[selectedDigit], rate=n?success/n*100:null, ci=wilsonInterval(success,n);
+    $("sampleSize").textContent=n;
+    $("hitRate").textContent=pct(rate);
+    $("hitCaption").textContent=outcome+" · digit "+selectedDigit;
+    $("uncertainty").textContent=ci?pct(ci.low)+"–"+pct(ci.high):"—";
+    $("digitRate").textContent=s.validCount?pct(s.counts[selectedDigit]/s.validCount*100):"—";
+    $("frequencyCaption").textContent=s.validCount+" historical ticks";
+    $("selectedRecent").textContent=s.recentN?pct(s.recent[selectedDigit]/s.recentN*100):"—";
+    $("selectedBar").style.width=(s.recentN?s.recent[selectedDigit]/s.recentN*100:0)+"%";
+    $("outcomeFreq").textContent=pct(rate); $("outcomeBar").style.width=(rate||0)+"%";
+    if (s.validCount) {
+      const last=s.windowTicks.filter(t=>lastDigit(t)!==null).slice(-1)[0];
+      $("quote").textContent=String(last.quote); $("latestDigit").textContent=lastDigit(last);
+      $("recentDigits").innerHTML=s.digits.filter(d=>d!==null).slice(-5).map(d=>'<span class="digit-chip">'+d+'</span>').join("");
+    } else { $("quote").textContent="—"; $("latestDigit").textContent="—"; $("recentDigits").textContent="Waiting for ticks"; }
+    $("digitButtons").innerHTML="";
+    for(let d=0;d<10;d++) { const b=document.createElement("button"); b.className="digit"+(d===selectedDigit?" selected":""); b.textContent=d; b.setAttribute("aria-pressed",String(d===selectedDigit)); b.addEventListener("click",()=>{selectedDigit=d;render();}); $("digitButtons").appendChild(b); }
+    $("distribution").innerHTML="";
+    for(let d=0;d<10;d++) { const f=s.validCount?s.counts[d]/s.validCount*100:0, item=document.createElement("div"); item.className="distitem"; item.innerHTML='<b>'+d+'</b><div class="distbar"><span style="height:'+f+'%"></span></div><div>'+(s.validCount?f.toFixed(0)+'%':'—')+'</div>'; $("distribution").appendChild(item); }
+    $("matchBtn").classList.toggle("active",isMatch); $("differBtn").classList.toggle("active",!isMatch);
+    $("matchBtn").setAttribute("aria-pressed",String(isMatch)); $("differBtn").setAttribute("aria-pressed",String(!isMatch));
+    renderRanking(s);
   }
-
+  function renderRanking(s) {
+    const body=$("rankingBody"), n=s.observations, isMatch=outcome==="MATCH";
+    if (!analysisStarted) return;
+    const rows=Array.from({length:10},(_,d)=>{
+      const match=n?s.hits[d]/n*100:null, differ=n?(n-s.hits[d])/n*100:null;
+      return {d,match,differ,score:isMatch?match:differ,matchCI:wilsonInterval(s.hits[d],n),differCI:wilsonInterval(n-s.hits[d],n),recent:s.recentN?s.recent[d]/s.recentN*100:null,history:s.validCount?s.counts[d]/s.validCount*100:null,after:s.transitionTotal?s.afterLatest[d]/s.transitionTotal*100:null,transitionCount:s.afterLatest[d]};
+    }).sort((a,b)=>(b.score??-1)-(a.score??-1)||a.d-b.d);
+    if (!n) { body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#6d7283">Waiting for enough valid tick observations.</td></tr>'; $("analysisResult").textContent="WAITING FOR TICKS"; $("analysisSummary").textContent="The market is selected, but no valid consecutive tick observations are available yet."; return; }
+    const best=rows[0];
+    $("analysisResult").textContent="Top historical "+outcome+" candidate: digit "+best.d;
+    $("analysisSummary").textContent="Ranked all digits using "+n+" next-tick observations. Digit "+best.d+" had a "+pct(best.score,2)+" historical "+outcome+" rate (95% Wilson interval "+pct((isMatch?best.matchCI:best.differCI).low,2)+"–"+pct((isMatch?best.matchCI:best.differCI).high,2)+"). This is a sample ranking, not a forecast or guarantee.";
+    body.innerHTML=rows.map((r,i)=>{
+      const mi=r.matchCI? r.matchCI.low.toFixed(1)+"–"+r.matchCI.high.toFixed(1)+"%":"—";
+      const di=r.differCI? r.differCI.low.toFixed(1)+"–"+r.differCI.high.toFixed(1)+"%":"—";
+      return '<tr class="'+(i===0?"best":"")+'"><td class="rank">'+(i+1)+" · "+r.d+'</td><td>'+pct(r.recent)+'</td><td>'+pct(r.history)+'</td><td>'+(s.transitionTotal?r.transitionCount+" / "+s.transitionTotal+" · "+pct(r.after):"—")+'</td><td>'+pct(r.match,2)+' <small>('+mi+')</small></td><td>'+pct(r.differ,2)+' <small>('+di+')</small></td></tr>';
+    }).join("");
+  }
   function runAnalysis() {
-    const s = getStats();
-    const arr = s.windowTicks;
-    const n = s.observations;
-
-    $("analysisChecks").innerHTML = "";
-
-    if (n < 200) {
-      $("analysisResult").textContent = "WAIT — INSUFFICIENT DATA";
-      $("analysisSummary").textContent =
-        "At least 200 historical 2-tick observations are required. Current sample: " +
-        n + ". Collect more data before interpreting the results.";
-
-      $("analysisChecks").innerHTML =
-        '<div class="check"><span>Minimum sample requirement</span><b class="fail">NOT MET</b></div>';
-
-      return;
-    }
-
-    const isMatch = outcome === "MATCH";
-    const baseline = isMatch ? 10 : 90;
-    const rate = s.chosenRate;
-    const successes = isMatch
-      ? Math.round(n * rate / 100)
-      : Math.round(n * rate / 100);
-
-    const ci = wilsonInterval(successes,n);
-
-    const checks = [];
-
-    // Condition 1: Historical confidence interval
-    const deviation = isMatch
-      ? ci.low > baseline
-      : ci.high < baseline;
-
-    checks.push({
-      name:"Historical deviation from baseline",
-      pass:deviation,
-      detail:ci.low.toFixed(1)+"%–"+ci.high.toFixed(1)+"%"
-    });
-
-    // Condition 2: Recent versus overall rate
-    const recentN = Math.min(50,n);
-    const recentStart = arr.length - recentN - 2;
-    let recentSuccess = 0;
-
-    for(let i=Math.max(0,recentStart); i<arr.length-2; i++) {
-      const hit = lastDigit(arr[i+2]) === selectedDigit;
-      if(isMatch ? hit : !hit) recentSuccess++;
-    }
-
-    const recentRate = recentN
-      ? recentSuccess/recentN*100 : 0;
-
-    const recentShift = Math.abs(recentRate-rate) >= 5;
-
-    checks.push({
-      name:"Recent 50 versus full sample",
-      pass:recentShift,
-      detail:recentRate.toFixed(1)+"% recent"
-    });
-
-    // Condition 3: Digit distribution
-    const digitDistribution = s.digitFreq;
-    const distributionPass = isMatch
-      ? digitDistribution >= 12
-      : digitDistribution <= 8;
-
-    checks.push({
-      name:"Selected digit distribution",
-      pass:distributionPass,
-      detail:digitDistribution.toFixed(1)+"%"
-    });
-
-    // Condition 4: Current same-result streak
-    let streak = 1;
-    let lastOutcome = lastDigit(arr[arr.length-1]) === selectedDigit;
-
-    for(let i=arr.length-2; i>=0; i--) {
-      const current = lastDigit(arr[i]) === selectedDigit;
-
-      if(current === lastOutcome) streak++;
-      else break;
-    }
-
-    const streakPass = streak >= 3;
-
-    checks.push({
-      name:"Current ending digit-result streak",
-      pass:streakPass,
-      detail:streak+" consecutive ticks"
-    });
-
-    // Condition 5: Gap since selected digit appeared
-    let gap = 0;
-
-    for(let i=arr.length-1; i>=0; i--) {
-      if(lastDigit(arr[i]) === selectedDigit) break;
-      gap++;
-    }
-
-    const gapPass = gap >= 10;
-
-    checks.push({
-      name:"Gap since selected digit",
-      pass:gapPass,
-      detail:gap+" ticks"
-    });
-
-    // Condition 6: Historical transition after latest digit
-    const latestDigit = lastDigit(arr[arr.length-1]);
-    let transitionTotal = 0;
-    let transitionSuccess = 0;
-
-    for(let i=0; i<arr.length-2; i++) {
-      if(lastDigit(arr[i]) === latestDigit) {
-        transitionTotal++;
-
-        const hit = lastDigit(arr[i+2]) === selectedDigit;
-
-        if(isMatch ? hit : !hit) {
-          transitionSuccess++;
-        }
-      }
-    }
-
-    const transitionRate = transitionTotal
-      ? transitionSuccess/transitionTotal*100 : 0;
-
-    const transitionPass = transitionTotal >= 20 &&
-      (isMatch
-        ? transitionRate > baseline
-        : transitionRate < baseline);
-
-    checks.push({
-      name:"Historical transition after digit "+latestDigit,
-      pass:transitionPass,
-      detail:transitionTotal+" samples · "+
-        transitionRate.toFixed(1)+"%"
-    });
-
-    // Render conditions
-    $("analysisChecks").innerHTML = checks.map(c =>
-      '<div class="check"><span>'+c.name+
-      '<br><small style="color:#aebbd4">'+c.detail+
-      '</small></span><b class="'+(c.pass?"pass":"fail")+'">'+
-      (c.pass?"PASS":"NOT MET")+'</b></div>'
-    ).join("");
-
-    const passed = checks.filter(c=>c.pass).length;
-
-    $("analysisResult").textContent =
-      deviation ? "HISTORICAL DEVIATION — VERIFY" : "WAIT — NO CLEAR DEVIATION";
-
-    $("analysisSummary").textContent =
-      outcome+" "+selectedDigit+
-      " · Historical 2-tick rate: "+rate.toFixed(2)+
-      "% · Baseline: "+baseline+
-      "% · Approximate 95% interval: "+
-      ci.low.toFixed(2)+"%–"+ci.high.toFixed(2)+
-      "% · Conditions passed: "+passed+"/"+
-      checks.length+". These are historical diagnostics, not a prediction.";
-
-    $("analysisCard").scrollIntoView({
-      behavior:"smooth",
-      block:"nearest"
-    });
+    analysisStarted=true;
+    const s=stats();
+    if (!s.observations) { $("analysisResult").textContent="WAITING FOR TICKS"; $("analysisSummary").textContent="No valid next-tick observations yet. Keep the public market stream connected and try again when ticks arrive."; }
+    render(); $("analysisCard").scrollIntoView({behavior:"smooth",block:"nearest"});
   }
-
-  // User controls
   $("connectBtn").addEventListener("click",connect);
-
-  $("marketSelect").addEventListener("change",e=>{
-    if(e.target.value) {
-      chooseMarket(e.target.value);
-    }
-  });
-
-  $("windowSelect").addEventListener("change",()=>{
-    if(selectedSymbol) {
-      chooseMarket(selectedSymbol);
-    }
-  });
-
-  $("matchBtn").addEventListener("click",()=>{
-    outcome="MATCH";
-    render();
-  });
-
-  $("differBtn").addEventListener("click",()=>{
-    outcome="DIFFER";
-    render();
-  });
-
+  $("marketSelect").addEventListener("change",e=>{if(e.target.value)chooseMarket(e.target.value);});
+  $("windowSelect").addEventListener("change",()=>{if(selectedSymbol)chooseMarket(selectedSymbol);});
+  $("matchBtn").addEventListener("click",()=>{outcome="MATCH";render();});
+  $("differBtn").addEventListener("click",()=>{outcome="DIFFER";render();});
   $("runAnalysisBtn").addEventListener("click",runAnalysis);
-
-  // Initial display
-  render();
-  setStatus("Ready. Connect to Deriv to load active markets.");
-
-})();
-</script>
+  render(); setStatus("Ready. Connect to Deriv to load active markets.");
+})();</script>
 </body>
 </html>
