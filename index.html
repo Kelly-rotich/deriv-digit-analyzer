@@ -441,7 +441,7 @@ const url =
         setStatus(true, "Connected");
 
         send({
-            active_symbols: "brief",
+            s: "brief",
             
         });
 
@@ -467,13 +467,34 @@ const url =
             return;
         }
 
-        if (data.msg_type === "active_symbols") {
-            state.markets = (data.active_symbols || [])
-                .filter(m =>
-                    m.symbol &&
-                    /Volatility|Crash|Boom|Step|Jump|Range|Drift/i
-                    .test(m.display_name || "")
-                );
+       
+if (data.msg_type === "active_symbols") {
+    state.markets = (data.active_symbols || [])
+        .map(m => ({
+            ...m,
+            symbol: m.symbol || m.underlying_symbol,
+            display_name:
+                m.display_name ||
+                m.underlying_symbol_name ||
+                m.underlying_symbol
+        }))
+        .filter(m =>
+            m.symbol &&
+            /Volatility|Crash|Boom|Step|Jump|Range|Drift/i
+                .test(m.display_name)
+        );
+
+    populateMarkets();
+
+    if (!state.symbol && state.markets.length) {
+        const preferred = state.markets.find(m =>
+            /Volatility 100 Index/i.test(m.display_name)
+        ) || state.markets[0];
+
+        selectMarket(preferred.symbol);
+    }
+}
+
 
             populateMarkets();
 
